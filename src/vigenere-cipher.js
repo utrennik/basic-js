@@ -14,11 +14,12 @@ class VigenereCipheringMachine {
 
 	encrypt(msg, key) {
 		if (arguments.length < 2) throw new Error('params undefined');
-		key = this.extendKey(msg, key);
+		key = this.keyGen(key);
 		msg = msg.toUpperCase().split('');
 
 		for (let i = 0; i < msg.length; i++){
-			msg[i] = this.shift(msg[i], key[i]);
+			if (msg[i].charCodeAt(0) > 90 || msg[i].charCodeAt(0) < 65) continue;
+			msg[i] = this.shift(msg[i], key.next());
 		}
 
 		if (this.direct === false) {
@@ -28,11 +29,12 @@ class VigenereCipheringMachine {
 
 	decrypt(encryptedMsg, key) {
 		if (arguments.length < 2) throw new Error('params undefined');
-		key = this.extendKey(msg, key);
+		key = this.keyGen(key);
 		encryptedMsg = encryptedMsg.toUpperCase().split('');
 
 		for (let i = 0; i < encryptedMsg.length; i++){
-			encryptedMsg[i] = this.unshift(encryptedMsg[i], key[i]);
+			if (encryptedMsg[i].charCodeAt(0) > 90 || encryptedMsg[i].charCodeAt(0) < 65) continue;
+			encryptedMsg[i] = this.unshift(encryptedMsg[i], key.next());
 		}
 
 		if (this.direct === false) {
@@ -40,28 +42,28 @@ class VigenereCipheringMachine {
 		} else return encryptedMsg.join('');
 	}
 
-	extendKey(msg, key) {
-		key = key.split('');
-		while (key.length < msg.length) {
-			key.concat(key.slice());
+	keyGen(key) {
+		key = key.toUpperCase().split('');
+		key.current = 0;
+		key.next = function () {
+			if (this.current == this.length) this.current = 0;
+			return this[this.current++];
 		}
-		key.length = msg.length;
-		return key.join('').toUpperCase();
+		return key;
 	}
 
 	shift(symb, key) {
-		if (symb.charCodeAt(0) > 90 || symb.charCodeAt(0) < 65) return symb;
 		let shift = key.charCodeAt(0) - 65;
 		let position = symb.charCodeAt(0) - 65 + shift;
-		if (position > 26) position = position - 26;
-		return String.fromCharCode(position);
+		if (position >= 26) position = position - 26;
+		return String.fromCharCode(position + 65);
 	}
 
 	unshift(symb, key) {
 		let shift = key.charCodeAt(0) - 65;
 		let position = symb.charCodeAt(0) - 65 - shift;
 		if (position < 0) position = position + 26;
-		return String.fromCharCode(position);
+		return String.fromCharCode(position + 65);
 	}
 
 }
